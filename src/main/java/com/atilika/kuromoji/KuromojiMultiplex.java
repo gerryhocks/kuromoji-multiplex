@@ -39,7 +39,10 @@ public class KuromojiMultiplex {
                     if ((selectedDictionary == null) || dictionaryName.equalsIgnoreCase(selectedDictionary)) {
                         Tokenizer tokenizer = new Tokenizer(dictionaryName);
                         for (Token token : tokenizer.tokenize(line)) {
-                            System.out.println(dictionaryName + "\t" + token.getSurface() + "\t" + token.getAllFeatures());
+                            System.out.println(dictionaryName + "\t" + token.getSurface());
+                            for (String name : token.getFeatureNames()) {
+                                System.out.println("\t" + name + ": " + token.getFeature(name));
+                            }
                         }
                     }
                 }

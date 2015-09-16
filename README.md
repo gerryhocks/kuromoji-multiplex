@@ -1,25 +1,29 @@
 # kuromoji-multiplex
-Simple way to tokenize using multiple Kuromoji dictionaries
 
-Usage examples
+Simple way to tokenize using multiple Kuromoji dictionaries.
 
+## Usage examples
 
-``` java
+Tokenize using a specific dictionary
+```java
 
    Tokenizer tokenizer = new Tokenizer("unidic");
    List<Token> tokens = tokenizer.tokenize("お寿司がたべたい"))
 
 ```
 
-``` java
+
+Tokenize the same string with all discovered dictionaries
+```java
 
 for (String dictionaryName : Dictionary.getDictionaryNames()) {
-   if ((selectedDictionary == null) || dictionaryName.equalsIgnoreCase(selectedDictionary)) {
-      Tokenizer tokenizer = new Tokenizer(dictionaryName);
-      for (Token token : tokenizer.tokenize("お寿司がたべたい")) {
-        System.out.println(dictionaryName + "\t" + token.getSurface() + "\t" + token.getAllFeatures());
-      }
-   }
+  Tokenizer tokenizer = new Tokenizer(dictionaryName);
+  for (Token token : tokenizer.tokenize("お寿司がたべたい")) {
+     System.out.println(dictionaryName + "\t" + token.getSurface());
+     for (String name : token.getFeatureNames()) {
+        System.out.println("\t" + name + ": " + token.getFeature(name));
+     }
+  }
 }
 
 ```
