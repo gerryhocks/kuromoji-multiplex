@@ -16,6 +16,7 @@
  */
 package com.atilika.kuromoji;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,9 +78,13 @@ public class Token {
      * @return
      */
     public String getFeature(String featureName) {
-        Integer fieldId = dictionary.getFields().get(featureName);
-        if ((fieldId != null) && (fieldId >= 0) && (fieldId < getAllFeaturesArray().length)) {
-            return getAllFeaturesArray()[fieldId];
+        Method method = dictionary.getFields().get(featureName);
+        if (method != null) {
+            try {
+                return String.valueOf(method.invoke(token));
+            } catch (Exception e) {
+                // ignored
+            }
         }
         return DEFAULT_FIELD_VALUE;
     }

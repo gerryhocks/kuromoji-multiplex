@@ -19,8 +19,7 @@ package com.atilika.kuromoji;
 
 import org.reflections.Reflections;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,9 +57,9 @@ public class Dictionary {
      */
     private Class<? extends TokenizerBase> tokenizer;
     /**
-     * a map of feilds/feature names to their implementation's field id
+     * a map of feilds/feature names to their method
      */
-    private Map<String, Integer> fields;
+    private Map<String, Method> fields;
 
     private static void initialize() {
         // search for implementations and register them
@@ -122,27 +121,25 @@ public class Dictionary {
     }
 
     /**
-     * Try to determine the tokenizer's feature/field names and their field ids
+     * Try to determine the tokenizer's feature method names
      *
      * @param tokenizer
      * @return
      */
-    private static Map<String, Integer> extractDictionaryFields(Class<? extends TokenizerBase> tokenizer) {
-        Map<String, Integer> fields = new HashMap<String, Integer>();
+    private static Map<String, Method> extractDictionaryFields(Class<? extends TokenizerBase> tokenizer) {
+        Map<String, Method> fields = new HashMap<>();
 
         // scrape the field declarations
-        String dictionaryFieldClassname = tokenizer.getName().replaceAll("Tokenizer", "compile.DictionaryEntry");
+        String dictionaryFieldClassname = tokenizer.getName().replaceAll("Tokenizer", "Token");
 
-        String[] dummyDictionaryFields = new String[128];
-        for (int i = 0; i < dummyDictionaryFields.length; i++) {
-            dummyDictionaryFields[i] = "0";
-        }
+
         try {
             Class dictFields = Class.forName(dictionaryFieldClassname);
-            Constructor c = dictFields.getConstructors()[0];
-            Object instance = c.newInstance(new Object[]{dummyDictionaryFields});
-            for (Field field : dictFields.getFields()) {
-                fields.put(field.getName(), field.getInt(instance));
+            for (Method method : dictFields.getDeclaredMethods()) {
+                if (method.getName().startsWith("get")) {
+                    String field = method.getName().substring(3);
+                    fields.put(field, method);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -157,7 +154,7 @@ public class Dictionary {
      */
     public static List<String> getDictionaryNames() {
         initialize();
-        return new ArrayList<String>(registry.keySet());
+        return new ArrayList<>(registry.keySet());
     }
 
     /**
@@ -174,7 +171,7 @@ public class Dictionary {
      *
      * @return
      */
-    public Map<String, Integer> getFields() {
+    public Map<String, Method> getFields() {
         return fields;
     }
 
@@ -185,7 +182,7 @@ public class Dictionary {
      */
     public TokenizerBase getTokenizer() {
         try {
-            return (TokenizerBase) (tokenizer.newInstance());
+            return tokenizer.newInstance();
         } catch (Exception e) {
             e.printStackTrace();
         }
